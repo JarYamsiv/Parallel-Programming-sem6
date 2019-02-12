@@ -1,0 +1,14 @@
+ starting..
+ type q to exit
+ type p harepos,turtlepo to reposition
+hare at 0, turtle at 0
+hare at 38, turtle at 19
+hare at 60, turtle at 39
+hare at 60, turtle at 59
+hare at 60, turtle at 79
+hare at 60, turtle at 99
+hare at 0, turtle at 20
+hare at 28, turtle at 40
+hare at 72, turtle at 60
+hare at 100, turtle at 80
+hare at 100, turtle at 100

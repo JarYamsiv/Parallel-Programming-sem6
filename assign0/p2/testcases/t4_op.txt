@@ -1,0 +1,26 @@
+ starting..
+ type q to exit
+ type p harepos,turtlepo to reposition
+hare at 0, turtle at 0
+hare at 40, turtle at 19
+hare at 49, turtle at 39
+hare at 49, turtle at 59
+hare at 49, turtle at 79
+hare at 200, turtle at 200
+hare at 200, turtle at 220
+hare at 202, turtle at 240
+hare at 234, turtle at 260
+hare at 276, turtle at 280
+hare at 320, turtle at 300
+hare at 335, turtle at 320
+hare at 335, turtle at 340
+hare at 335, turtle at 360
+hare at 335, turtle at 380
+hare at 335, turtle at 400
+hare at 335, turtle at 420
+hare at 363, turtle at 440
+hare at 403, turtle at 460
+hare at 444, turtle at 480
+hare at 488, turtle at 500
+turtle won at:501
+ press q to exit

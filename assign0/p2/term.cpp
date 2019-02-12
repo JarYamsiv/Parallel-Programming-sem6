@@ -119,7 +119,7 @@ int main()
     char option;
     int h_pos,t_pos;
 
-    printf(" starting..\n type q to exit\n type p harepos,turtlepo to reposition\n");
+    printf(" starting..\n type q to exit\n type p harepos,turtlepos to reposition\n");
 
     while(1)
     {
@@ -131,11 +131,10 @@ int main()
         else{
             scanf("%d %d",&h_pos,&t_pos);
             hare_pos_m.lock();
-            hare_pos = h_pos;
-            hare_pos_m.unlock();
-
             turtle_pos_m.lock();
+            hare_pos = h_pos;
             turtle_pos = t_pos;
+            hare_pos_m.unlock();
             turtle_pos_m.unlock();
         }
 
