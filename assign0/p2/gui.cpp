@@ -4,6 +4,10 @@
 #include <condition_variable>
 #include <unistd.h>
 #include <ctime>
+#include <X11/Xlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 /*
@@ -16,9 +20,6 @@ ROLL NO.   : 111601030
     certain time called the "step_time" this is to prevent the value being
     incremented too fast
 
-->  the reporter will report the status after waiting fo a certain
-    time called reporter_delay. this is donw so that the trminal wont get 
-    filled by reporting values
 
 ->  both hare and turtle and god will access the global variables
     which describes the current position of both hare and turtle
@@ -30,17 +31,12 @@ ROLL NO.   : 111601030
     ahead of turtle . and this sleep cannot be interupted even if god
     repositions them
 
-->  the main who launches the other three threads ( namely reporter 
-    hare and turtle) will also act as god
-
-->  god has the ability to end the race at any time
-
 ->  even if the race is over without god's permission the process cannot end
 
 ->  once the race is finished it will not start again even if god repositions
     the animals
 
-->  the test cases are created using bash files and are piped as inputs (see makefile)
+
 
 
 =======================================================
@@ -75,8 +71,9 @@ void hare()
     {
     finished_m.lock();
     if(hare_pos>500){printf("hare won at:%d\n press q to exit\n",hare_pos);finished=1;}
-    if(finished)break;
     finished_m.unlock();
+
+    if(finished)break;
 
     usleep(step_time);
 
@@ -102,7 +99,6 @@ void hare()
     
 
     }
-    finished_m.unlock();
 }
 
 void turtle()
@@ -111,10 +107,12 @@ void turtle()
 
     while(1)
     {
+
     finished_m.lock();
     if(turtle_pos>500){printf("turtle won at:%d\n press q to exit\n",turtle_pos);finished=1;}
-    if(finished)break;
     finished_m.unlock();
+
+    if(finished)break;
 
     usleep(step_time);
 
@@ -126,70 +124,130 @@ void turtle()
 
 
     }
-    finished_m.unlock();
+
 }
 
-void reporter()
+void god()
 {
-    while(1)
+    char option;
+    int h_pos,t_pos;
+    
+ while(1)
     {
     finished_m.lock();
     if(finished)break;
     finished_m.unlock();
 
-    hare_pos_m.lock();
-    turtle_pos_m.lock();
-    printf("hare at %d, turtle at %d\n",hare_pos,turtle_pos);
-    hare_pos_m.unlock();
-    turtle_pos_m.unlock();
-    usleep(report_delay);
-
-
-    }
-    
-    finished_m.unlock();
-
-    
-}
-
-int main()
-{
-    srand(time(NULL));
-    std::thread hare_t(hare);
-    std::thread turtle_t(turtle);
-    std::thread reporter_t(reporter);
-
-    char option;
-    int h_pos,t_pos;
-
-    printf(" starting..\n type q to exit\n type p harepos turtlepos to reposition\n");
-
-    while(1)
-    {
-        scanf("%c",&option);
+    printf(">>>");
+    std::cin>>option;
         if(option=='q')
         {
-            break;
+            finished_m.lock();
+            finished = 1;
+            finished_m.unlock();
         }
         else{
-            scanf("%d %d",&h_pos,&t_pos);
+            std::cin>>h_pos;
+            std::cin>>t_pos;
+
             hare_pos_m.lock();
             turtle_pos_m.lock();
+
             hare_pos = h_pos;
             turtle_pos = t_pos;
+
             hare_pos_m.unlock();
             turtle_pos_m.unlock();
         }
 
-        
+
+
     }
+
+
     
+}
+
+Display *dis;
+Window win;
+int x11_fd;
+fd_set in_fds;
+
+struct timeval tv;
+XEvent ev;
+
+int main(void)
+{
+    dis = XOpenDisplay(NULL);
+    int s = DefaultScreen(dis);
+    win = XCreateSimpleWindow(dis, RootWindow(dis, s), 10, 10, 600, 200, 1, BlackPixel (dis, s), WhitePixel(dis, s));
+
+    // You don't need all of these. Make the mask as you normally would.
+    XSelectInput(dis, win, 
+        ExposureMask | KeyPressMask 
+        );
+
+    XMapWindow(dis, win);
+    //XFlush(dis);
+
+    // This returns the FD of the X11 display (or something like that)
+    x11_fd = ConnectionNumber(dis);
+
+    
+
+    srand(time(NULL));
+    std::thread hare_t(hare);
+    std::thread turtle_t(turtle);
+    std::thread god_t(god);
+
+    char hare_title[] = "hare:";
+    char turtle_title[] = "turtle:";
+
+    printf("top one is turtle and bottom one is hare\n");
+    printf("type p harepos turtlepos to reposition\n");
+    printf("press them x icon to close\n");
+
+    // Main loop
+    while(1) {
+        finished_m.lock();
+        if(finished)break;
+        finished_m.unlock();
+        // Create a File Description Set containing x11_fd
+        FD_ZERO(&in_fds);
+        FD_SET(x11_fd, &in_fds);
+
+        // Set our timer.  One second sounds good.
+        tv.tv_usec = 0;
+        tv.tv_sec = 0.75;
+
+        // Wait for X Event or a Timer
+        int num_ready_fds = select(x11_fd + 1, &in_fds, NULL, NULL, &tv);
+        if (num_ready_fds == 0)
+            {
+                        XClearWindow(dis,win);
+                        XFlush(dis);
+                        
+                        XFillRectangle(dis, win, DefaultGC(dis, s), turtle_pos, 20, 20, 20);
+                        XFillRectangle(dis, win, DefaultGC(dis, s), hare_pos, 60, 20, 20);
+            }
+        else
+            {//printf("An error occured!\n");
+            }
+
+        // Handle XEvents and flush the input 
+        while(XPending(dis))
+            {
+                XFlush(dis);
+                XNextEvent(dis, &ev);
+            }
+    }
+    XCloseDisplay(dis);
     finished_m.lock();
     finished = 1;
     finished_m.unlock();
 
     hare_t.join();
     turtle_t.join();
-    reporter_t.join();
-    return 0;
-}
+    god_t.join();
+    return(0);
+ }
