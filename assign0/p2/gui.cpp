@@ -217,8 +217,8 @@ int main(void)
         FD_SET(x11_fd, &in_fds);
 
         // Set our timer.  One second sounds good.
-        tv.tv_usec = 0;
-        tv.tv_sec = 0.75;
+        tv.tv_usec = 75000;
+        tv.tv_sec = 0;
 
         // Wait for X Event or a Timer
         int num_ready_fds = select(x11_fd + 1, &in_fds, NULL, NULL, &tv);

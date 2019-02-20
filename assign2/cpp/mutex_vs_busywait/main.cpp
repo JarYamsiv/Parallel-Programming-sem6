@@ -1,60 +1,3 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include <pthread.h>
-#include <assert.h>
-
-typedef struct m_thread_arg_t{
-	int id;
-	int x;
-}m_thread_arg_t;
-
-typedef struct b_thread_arg_t{
-	int id;
-	int x;
-}b_thread_arg_t;
-
-void* m_thread_fn(void* args);
-void* busy_thread_fn(void* args);
-
-int main(int argc,char *argv[])
-{	
-	int result_code;
-	pthread_t mthread;
-
-
-
-	//will be having to make array of arguments as they are being passed by pointers;
-	m_thread_arg_t arg_m_thread;
-	arg_m_thread.id = 0;
-	arg_m_thread.x = 1;
-
-
-
-	
-	result_code = pthread_create(&mthread,NULL,m_thread_fn,(void*)&arg_m_thread);
-	assert(!result_code);
-
-	result_code = pthread_join(mthread,NULL);
-	assert(!result_code);
-
-
-
-	return 0;
-}
-
-void* m_thread_fn(void* args)
-{
-	m_thread_arg_t* arguments = (m_thread_arg_t*)args;
-	printf("id is %d and x is %d \n", arguments->id,arguments->x );
-}
-
-void* b_thread_fn(void* args)
-{
-	b_thread_arg_t* arguments = (b_thread_arg_t*)args;
-}
-
-/*
-
 #include <stdio.h>
 #include <time.h>
 #include <thread>
@@ -173,6 +116,3 @@ void busy_thread(int my_id,int count_lim,int num_t,int seed)
         
     }
 }
-
-*/
-		
