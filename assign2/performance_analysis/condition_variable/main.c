@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <time.h>
+#include <unistd.h>
 
 typedef struct m_thread_arg_t{
     int id;
@@ -16,15 +17,14 @@ static void* m_thread_fn(void* args);
 //global varaibles
 volatile long long int counter;
 volatile long long int count_lim;
-volatile int flag;
-pthread_mutex_t counter_mut;
+pthread_mutex_t counter_mut = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t counter_cond = PTHREAD_COND_INITIALIZER;
 
 //global vairables end
 
 
 int main(int argc,char *argv[]){
     counter = 0;
-    flag = 0;
     //the program takes arguments through command line	
     if(argc<3){
         // printf("usage <pgm> count_lim num_thread\n");
@@ -68,6 +68,16 @@ int main(int argc,char *argv[]){
         result_code = pthread_create(&mthread[t_id],NULL,m_thread_fn,(void*)&arg_m_thread[t_id]);
         assert(!result_code);
     }
+
+    //waiting on condition variable
+    pthread_mutex_lock(&counter_mut);
+    while(counter<count_lim)
+    {
+
+        pthread_cond_wait( & counter_cond, & counter_mut );
+
+    }
+     pthread_mutex_unlock(&counter_mut);   
 	
 	
     //joining all threads
@@ -98,20 +108,26 @@ static void* m_thread_fn(void* args){
 
 
     long long int i;
-    long long int my_count_lim = (count_lim) / (arguments->num_t);
+    long long int my_count_lim = ((count_lim) / (arguments->num_t)) + arguments->num_t;
 
+    
+    for(i = 0 ; i < my_count_lim*2; i++){
 
-    for(i = 0 ; i < my_count_lim; i++){
-        if(counter< count_lim){
-            while(flag!=arguments->id){}
+        pthread_mutex_lock(&counter_mut);
+        pthread_cond_signal( & counter_cond ); 
+        if(counter < count_lim){   
+            pthread_mutex_unlock(&counter_mut);
             counter++;
-            flag = (flag+1)%(arguments->num_t);
+            //pthread_cond_signal( &counter_cond ); 
         }
         else{
+            pthread_mutex_unlock(&counter_mut);
+            //pthread_cond_signal( &counter_cond ); 
+            //printf("reached count_lim from thread %d\n",arguments->id );
             break;
         }
-        
     }
+    
 
     //printf("id is %d and my_count_limit is %lld \n", arguments->id,i);
 }

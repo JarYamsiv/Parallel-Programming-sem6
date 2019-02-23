@@ -25,14 +25,14 @@ int main(int argc,char *argv[]){
     counter = 0;
     //the program takes arguments through command line	
     if(argc<3){
-        printf("usage <pgm> count_lim num_thread\n");
+        // printf("usage <pgm> count_lim num_thread\n");
         return 0;
     }
     count_lim = atoi(argv[1]);
     int num_thread = atoi(argv[2]);
 
     if(count_lim<=0 || num_thread <=0 ||count_lim<num_thread){
-        printf("invalid arguments\n");
+        // printf("invalid arguments\n");
         return 0;
     }
     else{
