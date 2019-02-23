@@ -102,10 +102,15 @@ static void* m_thread_fn(void* args){
 
 
     for(i = 0 ; i < my_count_lim; i++){
-
-        while(flag!=arguments->id);
-        counter++;
-        flag = (flag+1)%(arguments->num_t);
+        if(counter< count_lim){
+            while(flag!=arguments->id){}
+            counter++;
+            flag = (flag+1)%(arguments->num_t);
+        }
+        else{
+            break;
+        }
+        
     }
 
     //printf("id is %d and my_count_limit is %lld \n", arguments->id,i);

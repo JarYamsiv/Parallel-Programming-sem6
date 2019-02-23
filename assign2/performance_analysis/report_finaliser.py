@@ -1,5 +1,9 @@
 import matplotlib.pyplot as plt
 import sys
+import random
+
+def ret_rand_col(arg):
+	return '#'+"%06x" % random.randint(0, 0xFFFFFF)
 
 file_name = sys.argv[1]
 
@@ -39,8 +43,8 @@ t_keys = list(t_counts.keys())
 
 #print(count_key)
 #print(t_keys)
-
-colors = [ 'b' , 'g' , 'r' , 'c' , 'm', 'y', 'k']
+colors = ['b','r','g','c','m','y','k']
+colors.extend( [ ret_rand_col(x) for x in count_key] )
 
 plt.ylabel("time takes (s)")
 plt.xlabel("number of threads")

@@ -1,6 +1,6 @@
 echo "making report please wait.."
 
-COUNT_MAX_ARRAY=(1000 10000 100000 1000000)
+COUNT_MAX_ARRAY=(50 100 200 500 1000 10000 100000 1000000)
 
 THREAD_ARRAY=(1 2 3 4)
 
@@ -28,7 +28,7 @@ do
 
 			printf "\r%d of %d done" ${COUNTER} ${TOTAL_ARRAY_SIZE}
 
-			echo "mut" ${c} ${t} >> report/${p}.txt
+			echo ${p} ${c} ${t} >> report/${p}.txt
 			./${p}/main ${c} ${t} >> report/${p}.txt
 			echo "" >> report/${p}.txt
 		done

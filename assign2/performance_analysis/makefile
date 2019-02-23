@@ -15,5 +15,5 @@ run:all
 	bash report_maker.sh
 
 clean:
-	rm report/final/*.png
 	rm report/*.txt
+	rm report/final/*.png
