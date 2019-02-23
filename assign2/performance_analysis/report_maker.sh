@@ -1,8 +1,10 @@
 echo "making report please wait.."
 
-echo "the detailed reports ie, *.txt is of the format
+echo "
+the detailed reports ie, *.txt is of the format
 <pgm_name> count thread_count
-time elapsed in seconds" > report/how_to_read.txt
+time elapsed in seconds
+" > report/how_to_read.txt
 
 #======================================================================================================
 #
@@ -11,7 +13,7 @@ time elapsed in seconds" > report/how_to_read.txt
 #======================================================================================================
 
 
-PROGRAMS=(mutex condition_variable)
+PROGRAMS=(mutex condition_variable read_write)
 
 COUNT_MAX_ARRAY=(50 100 200 500 1000 10000 100000 1000000)
 THREAD_ARRAY=(1 2 3 4 5 6 7 8 9 10)
@@ -82,7 +84,7 @@ printf "\n"
 #======================================================================================================
 
 
-PROGRAMS=(mutex condition_variable busy_wait)
+PROGRAMS=(mutex condition_variable busy_wait read_write)
 
 for p in ${PROGRAMS[*]}
 do
