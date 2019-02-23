@@ -1,44 +1,51 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 #include <pthread.h>
 #include <unistd.h>
-
-#define NUM_THREADS 5
-
-void* perform_work(void *arguments){
-  int index = *((int *)arguments);
-  int sleep_time = 1 + rand() % NUM_THREADS;
-  printf("THREAD %d: Started.\n", index);
-  printf("THREAD %d: Will be sleeping for %d seconds.\n", index, sleep_time);
-  sleep(sleep_time);
-  printf("THREAD %d: Ended.\n", index);
-  
+#include <stdlib.h>
+ 
+volatile int i = 0; /* i is global, so it is visible to all functions.
+                       It's also marked volatile, because it
+                       may change in a way which is not predictable by the compiler,
+                       here from a different thread. Thus preventing the compiler from
+                       caching its value.*/
+ 
+/* f1 uses a spinlock to wait for i to change from 0. */
+static void *f1(void *p)
+{
+    while (i==0) {
+        /* do nothing - just keep checking over and over */
+    } 
+    printf("i's value has changed to %d.\n", i);
+    return NULL;
 }
 
-int main(void) {
-  pthread_t threads[NUM_THREADS];
-  int thread_args[NUM_THREADS];
-  int i;
-  int result_code;
-  
-  //create all threads one by one
-  for (i = 0; i < NUM_THREADS; i++) {
-    printf("IN MAIN: Creating thread %d.\n", i);
-    thread_args[i] = i;
-    result_code = pthread_create(&threads[i], NULL, perform_work, &thread_args[i]);
-    assert(!result_code);
-  }
+static void *f2(void *p)
+{
+    sleep(3);   /* sleep for 3 seconds */
+    i = 99;
+    printf("t2 has changed the value of i to %d.\n", i);
+    return NULL;
+}
 
-  printf("IN MAIN: All threads are created.\n");
+int main()
+{
+    int rc;
+    pthread_t t1, t2;
 
-  //wait for each thread to complete
-  for (i = 0; i < NUM_THREADS; i++) {
-    result_code = pthread_join(threads[i], NULL);
-    assert(!result_code);
-    printf("IN MAIN: Thread %d has ended.\n", i);
-  }
-
-  printf("MAIN program has ended.\n");
-  return 0;
+    rc = pthread_create(&t1, NULL, f1, NULL);
+    if (rc != 0) {
+        fprintf(stderr,"pthread f1 failed\n");
+        return EXIT_FAILURE;
+    }
+ 
+    rc = pthread_create(&t2, NULL, f2, NULL);
+    if (rc != 0) {
+        fprintf(stderr,"pthread f2 failed\n");
+        return EXIT_FAILURE;
+    }
+ 
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    puts("All pthreads finished.");
+    return 0;
 }
