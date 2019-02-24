@@ -12,7 +12,10 @@
 
 
 /**** data ****/
-struct termios orig_termios; //the original one which later can be used 
+struct editorConfig {
+  struct termios orig_termios;
+};
+struct editorConfig E;
 
 
 
@@ -20,22 +23,24 @@ struct termios orig_termios; //the original one which later can be used
 
 /**** terminal ****/
 void die(const char *s) {
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3);
   perror(s);
   exit(1);
 }
 
 void disableRawMode() {
-  if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios)==-1){
+  if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios)==-1){
     die("tcsetattr");
   }
 }
 
 void enableRawMode() {
 
-  if(tcgetattr(STDIN_FILENO, &orig_termios)==-1)die("tcgetattr");
+  if(tcgetattr(STDIN_FILENO, &E.orig_termios)==-1)die("tcgetattr");
   atexit(disableRawMode);
 
-  struct termios raw = orig_termios; //to set the raw attributes
+  struct termios raw = E.orig_termios; //to set the raw attributes
   raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON); //fixes ctrl+m , disable ctrl+s , ctrl+q 
   raw.c_oflag &= ~(OPOST); //turns off o/p processing now we need to use /r while printing
   raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN); // turns off echo , cononical mode(now it reads byte by byte instead of line) , ctrl+c , ctrl+z
@@ -62,6 +67,8 @@ void editorProcessKeypress() {
   char c = editorReadKey();
   switch (c) {
     case CTRL_KEY('q'):
+      write(STDOUT_FILENO, "\x1b[2J", 4);
+      write(STDOUT_FILENO, "\x1b[H", 3);
       exit(0);
       break;
   }
@@ -69,8 +76,22 @@ void editorProcessKeypress() {
 
 
 /**** output processing ****/
+void editorDrawRows() { 
+  //drwas tild on the begining of all lines
+  int y;
+  for (y = 0; y < 24; y++) {
+    write(STDOUT_FILENO, "~\r\n", 3);
+  }
+}
+
+
 void editorRefreshScreen() {
   write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3);
+
+  editorDrawRows();
+
+  write(STDOUT_FILENO, "\x1b[H", 3);
   //clears screen
 }
 
