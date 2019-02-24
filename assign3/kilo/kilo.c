@@ -6,6 +6,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
 /**** defines ****/
 #define CTRL_KEY(k) ((k) & 0x1f)
@@ -13,6 +14,8 @@
 
 /**** data ****/
 struct editorConfig {
+  int screenrows;
+  int screencols;
   struct termios orig_termios;
 };
 struct editorConfig E;
@@ -53,7 +56,6 @@ void enableRawMode() {
   //setting the attributes previuosly defined
 }
 
-/**** input processing ****/
 char editorReadKey() {
   int nread;
   char c;
@@ -62,6 +64,21 @@ char editorReadKey() {
   }
   return c;
 }
+
+int getWindowSize(int *rows, int *cols) {
+  struct winsize ws;
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+    return -1;
+  } else {
+    *cols = ws.ws_col;
+    *rows = ws.ws_row;
+    return 0;
+  }
+}
+
+
+/**** input processing ****/
+
 
 void editorProcessKeypress() {
   char c = editorReadKey();
@@ -79,7 +96,7 @@ void editorProcessKeypress() {
 void editorDrawRows() { 
   //drwas tild on the begining of all lines
   int y;
-  for (y = 0; y < 24; y++) {
+  for (y = 0; y < E.screenrows; y++) {
     write(STDOUT_FILENO, "~\r\n", 3);
   }
 }
@@ -95,6 +112,12 @@ void editorRefreshScreen() {
   //clears screen
 }
 
+/**** init ****/
+void initEditor() {
+  //get window size
+  if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
+}
+
 
 /**** function def end ****/
 
@@ -102,6 +125,7 @@ void editorRefreshScreen() {
 int main() {
 
   enableRawMode();
+  initEditor();
 
    while (1) {
     editorRefreshScreen();
